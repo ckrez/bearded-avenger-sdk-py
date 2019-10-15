@@ -80,6 +80,12 @@ def main():
 
     p.add_argument('--feed', action='store_true')
 
+    p.add_argument('--feed-limit', help='limit the number of feed events printed')
+
+    p.add_argument('--sort-order', help='sort direction for feeds (asc, desc)')
+
+    p.add_argument('--sort-field', help='field to sort feeds on')
+
     p.add_argument('--no-verify-ssl', action='store_true')
 
     p.add_argument('--last-day', action="store_true", help='auto-sets reporttime to 23 hours and 59 seconds ago '
@@ -256,6 +262,20 @@ def main():
             logger.error(e)
 
         else:
+            if (args.sort_order or args.sort_field):
+                if args.sort_order == 'asc':
+                    reverse = True
+                else:
+                    reverse = False
+
+                if not args.sort_field:
+                    args.sort_field = 'reporttime'
+
+                rv = sorted(rv, key=lambda k: k[args.sort_field], reverse=reverse)
+
+            if args.feed_limit:
+                rv = rv[-int(args.feed_limit):]
+
             print(FORMATS[options.get('format')](data=rv, cols=args.columns.split(',')))
 
         raise SystemExit
